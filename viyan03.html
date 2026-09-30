@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viyan – Voice guide for schemes and skills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&family=Noto+Sans+Telugu:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&family=Noto+Sans+Malayalam:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2140; --muted:#5A6285; --indigo:#2E3A8C; --indigo-soft:#EAEDFB; --indigo-deep:#1E2766;
+  --marigold:#F4A81D; --marigold-soft:#FFF3D6; --paper:#F5F6FB; --card:#FFFFFF; --line:#D8DCEF;
+  --ok:#1F8A70; --warn:#9A5B00;
+  --font: "Atkinson Hyperlegible","Noto Sans Devanagari","Noto Sans Tamil","Noto Sans Telugu","Noto Sans Kannada","Noto Sans Malayalam",system-ui,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);font-size:18px;line-height:1.55;min-height:100vh}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--marigold);outline-offset:3px}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;background:var(--indigo-deep);color:#fff}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand b{font-size:24px;letter-spacing:.3px}
+.brand span{font-size:15px;opacity:.8}
+.langpill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:8px 16px}
+.langpill:hover{background:rgba(255,255,255,.2)}
+
+/* layout */
+main{display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:24px;max-width:1180px;margin:0 auto;padding:24px}
+@media(max-width:860px){main{grid-template-columns:1fr;padding:16px}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px}
+.talk{align-self:start;position:sticky;top:16px;text-align:center}
+@media(max-width:860px){.talk{position:static}}
+
+.say{min-height:3.4em;font-size:19px;color:var(--ink);margin:0 0 18px}
+.status{font-weight:700;color:var(--indigo);margin:14px 0 4px;min-height:1.6em}
+
+/* mic orb */
+.orbwrap{position:relative;width:170px;height:170px;margin:6px auto}
+.orb{position:relative;z-index:2;width:170px;height:170px;border-radius:50%;border:0;background:var(--indigo);color:#fff;display:grid;place-items:center;box-shadow:0 10px 30px rgba(46,58,140,.35);transition:transform .15s, background .2s}
+.orb:hover{transform:scale(1.03)}
+.orb svg{width:64px;height:64px}
+.ring{position:absolute;inset:0;border-radius:50%;border:3px solid var(--marigold);opacity:0;z-index:1}
+.orbwrap.listening .orb{background:#C62E4B;box-shadow:0 10px 30px rgba(198,46,75,.35)}
+.orbwrap.listening .ring,.orbwrap.speaking .ring{animation:ripple 1.6s ease-out infinite}
+.orbwrap.listening .ring:nth-child(2),.orbwrap.speaking .ring:nth-child(2){animation-delay:.5s}
+.orbwrap.thinking .orb{background:var(--marigold);color:var(--ink);animation:pulse 1s ease-in-out infinite}
+.orbwrap.speaking .orb{background:var(--ok)}
+@keyframes ripple{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.65);opacity:0}}
+@keyframes pulse{50%{transform:scale(.94)}}
+@media(prefers-reduced-motion:reduce){.ring{animation:none!important}.orb{animation:none!important}}
+
+.transcript{min-height:3.2em;margin:14px 0 0;padding:12px 14px;border-radius:12px;background:var(--indigo-soft);text-align:left;font-size:18px}
+.transcript small{display:block;color:var(--muted);font-size:14px;margin-bottom:2px}
+.stopbtn{margin-top:12px;background:#fff;border:2px solid var(--ink);color:var(--ink);border-radius:12px;padding:8px 18px;font-weight:700;display:none}
+.stopbtn.on{display:inline-block}
+
+.typebox{display:flex;gap:8px;margin-top:18px}
+.typebox input{flex:1;min-width:0;font:inherit;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff}
+.typebox button{border:0;background:var(--marigold);color:var(--ink);font-weight:700;padding:0 18px;border-radius:12px}
+.samples{margin-top:18px;text-align:left}
+.samples p{margin:0 0 8px;color:var(--muted);font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--indigo);background:#fff;color:var(--indigo);border-radius:999px;padding:6px 14px;font-size:16px}
+.chip:hover{background:var(--indigo-soft)}
+.notice{margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--marigold-soft);color:var(--warn);text-align:left;font-size:15px;display:none}
+.notice.on{display:block}
+
+/* results */
+.results h2{margin:0 0 6px;font-size:24px;color:var(--indigo-deep)}
+.empty{color:var(--muted);padding:40px 12px;text-align:center;font-size:19px}
+.profile{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.tag{background:var(--marigold-soft);border:1px solid var(--marigold);border-radius:999px;padding:3px 14px;font-weight:600;font-size:16px}
+.demonote{font-size:15px;color:var(--warn);margin:-8px 0 16px}
+.scheme{border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px;background:#fff;transition:border-color .2s, box-shadow .2s}
+.scheme.playing{border-color:var(--ok);box-shadow:0 0 0 4px rgba(31,138,112,.15)}
+.scheme.first{border-left:8px solid var(--indigo)}
+.shead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.shead h3{margin:0;font-size:21px;color:var(--indigo-deep)}
+.cat{font-size:14px;background:var(--indigo-soft);color:var(--indigo);border-radius:8px;padding:2px 10px;font-weight:600}
+.native{margin:8px 0 4px}
+.eng{margin:0 0 10px;font-size:15px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:8px 16px;font-weight:700;border:2px solid var(--indigo);background:var(--indigo);color:#fff}
+.btn svg{width:20px;height:20px}
+.btn.ghost{background:#fff;color:var(--indigo);text-decoration:none}
+.path{margin-top:22px}
+.path h3{font-size:19px;margin:0 0 8px;color:var(--indigo-deep)}
+.pathrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:12px;background:var(--indigo-soft);margin-bottom:8px}
+.lvl{font-weight:700;color:var(--indigo)}
+footer{max-width:1180px;margin:0 auto;padding:0 24px 28px;color:var(--muted);font-size:14px}
+
+/* language gate */
+.gate{position:fixed;inset:0;background:rgba(20,26,70,.72);display:grid;place-items:center;padding:16px;z-index:10}
+.gate.off{display:none}
+.gatebox{background:#fff;border-radius:24px;max-width:640px;width:100%;padding:28px;max-height:96vh;overflow:auto}
+.gatebox h1{margin:0 0 4px;font-size:28px;color:var(--indigo-deep)}
+.gatebox .sub{color:var(--muted);margin:0 0 18px;font-size:16px}
+.region{background:var(--marigold-soft);border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:16px;min-height:2.6em}
+.langgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.lang{position:relative;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:14px 16px;font-size:22px;font-weight:600}
+.lang small{display:block;font-size:14px;font-weight:400;color:var(--muted)}
+.lang[aria-pressed="true"]{border-color:var(--indigo);background:var(--indigo-soft)}
+.lang .sug{position:absolute;top:8px;right:10px;background:var(--marigold);color:var(--ink);font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px}
+.gatefoot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px}
+.start{border:0;background:var(--indigo);color:#fff;font-size:22px;font-weight:700;border-radius:14px;padding:12px 34px}
+.demoloc{font-size:14px;color:var(--muted)}
+.demoloc select{font:inherit;margin-left:6px;padding:4px 6px;border-radius:8px;border:1px solid var(--line)}
+
+[hidden]{display:none!important}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tbtn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:6px 12px;font-weight:700}
+.tbtn[aria-pressed=true]{background:var(--marigold);color:var(--ink)}
+#wave{width:100%;height:44px;display:none;margin-top:8px}
+.loghead{display:flex;justify-content:space-between;align-items:center;margin:20px 0 6px;color:var(--muted);font-size:15px;text-align:left}
+.loghead button{border:0;background:none;color:var(--indigo);font-weight:700}
+.log{max-height:250px;overflow:auto;text-align:left;display:flex;flex-direction:column;gap:8px}
+.bubble{background:var(--indigo-soft);border-radius:14px 14px 4px 14px;padding:10px 12px}
+.bmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:13px;color:var(--muted)}
+.bmeta audio{height:30px;max-width:100%}
+.bmeta button{border:0;background:none;color:var(--indigo);font-weight:700;font-size:16px;padding:0 4px}
+.rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.langchip{display:inline-block;margin:4px 0 0;background:var(--indigo);color:#fff;border-radius:999px;padding:2px 14px;font-size:15px;font-weight:700}
+.tag{display:inline-flex;align-items:center;gap:6px}
+.tag button{border:0;background:none;font-weight:700;padding:0 2px;line-height:1;font-size:18px}
+.why{font-size:14px;color:var(--ok);font-weight:700;margin:6px 0 0}
+details.more{margin:0 0 12px;border-top:1px dashed var(--line);padding-top:8px}
+details.more summary{cursor:pointer;font-weight:700;color:var(--indigo)}
+details.more h4{margin:10px 0 4px;font-size:16px}
+details.more ul,details.more ol{margin:6px 0 0;padding-left:22px}
+.skel{height:110px;border-radius:16px;margin-bottom:14px;background:linear-gradient(90deg,#e9ecf8 25%,#f5f6fb 50%,#e9ecf8 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skel{animation:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><b>Viyan</b><span>Voice guide for schemes and skills</span></div>
+  <div class="tools"><button class="tbtn" id="fontDn" aria-label="Smaller text">A−</button><button class="tbtn" id="fontUp" aria-label="Larger text">A+</button><button class="tbtn" id="slowBtn" aria-pressed="false" aria-label="Slow voice" title="Slow voice">🐢</button><button class="langpill" id="langBtn" aria-label="Change language">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+    <span id="langBtnText">English</span>
+  </button></div>
+</header>
+
+<main>
+  <section class="panel talk" aria-label="Talk">
+    <p class="say" id="say"></p>
+    <div class="orbwrap" id="orbwrap">
+      <span class="ring"></span><span class="ring"></span>
+      <button class="orb" id="orb" aria-label="Microphone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></svg>
+      </button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <canvas id="wave" width="320" height="44" aria-hidden="true"></canvas>
+    <button class="stopbtn" id="stopBtn"></button>
+    <div class="transcript" id="transcript" aria-live="polite" hidden><small id="heardLbl"></small><span id="heardTxt"></span></div>
+    <div class="notice" id="notice" role="status"></div>
+    <div class="typebox">
+      <input id="typed" type="text" autocomplete="off">
+      <button id="sendBtn"></button>
+    </div>
+    <div class="samples">
+      <p id="samplesLbl"></p>
+      <div class="chips" id="sampleChips"></div>
+    </div>
+    <div class="loghead"><b id="logTitle"></b><button id="clearLog" aria-label="Clear conversation">🗑</button></div>
+    <div class="log" id="log" aria-live="polite"></div>
+  </section>
+
+  <section class="panel results" aria-label="Results">
+    <div class="rhead"><h2 id="resTitle"></h2><button class="btn ghost" id="readAll" hidden></button></div>
+    <div id="resBody"><div class="empty" id="emptyMsg"></div></div>
+  </section>
+</main>
+
+<footer id="foot">Prototype with demo data. Scheme details and NSQF levels are samples; confirm on the official portals before applying.</footer>
+
+<!-- language gate -->
+<div class="gate" id="gate">
+  <div class="gatebox" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+    <h1 id="gateTitle">Choose your language</h1>
+    <p class="sub">भाषा चुनें &nbsp;/&nbsp; மொழியைத் தேர்ந்தெடுக்கவும் &nbsp;/&nbsp; భాషను ఎంచుకోండి &nbsp;/&nbsp; ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ &nbsp;/&nbsp; ഭാഷ തിരഞ്ഞെടുക്കൂ</p>
+    <div class="region" id="region">Finding your region…</div>
+    <div class="langgrid" id="langGrid"></div>
+    <div class="gatefoot">
+      <label class="demoloc">Demo location
+        <select id="demoLoc"><option value="">My device location</option></select>
+      </label>
+      <button class="start" id="startBtn">Start</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====================== DATA ====================== */
+const LANGS = [
+  {code:'en', name:'English',  native:'English',   bcp:'en-IN'},
+  {code:'hi', name:'Hindi',    native:'हिन्दी',     bcp:'hi-IN'},
+  {code:'ta', name:'Tamil',    native:'தமிழ்',      bcp:'ta-IN'},
+  {code:'te', name:'Telugu',   native:'తెలుగు',     bcp:'te-IN'},
+  {code:'kn', name:'Kannada',  native:'ಕನ್ನಡ',      bcp:'kn-IN'},
+  {code:'ml', name:'Malayalam',native:'മലയാളം',     bcp:'ml-IN'},
+];
+
+/* Anchor points: the nearest one to the user's GPS position decides the suggested language. */
+const ANCHORS = [
+  ['Tamil Nadu','ta',13.08,80.27],['Tamil Nadu','ta',11.00,76.96],['Tamil Nadu','ta',9.92,78.12],['Tamil Nadu','ta',10.80,78.69],['Tamil Nadu','ta',11.65,78.16],['Tamil Nadu','ta',8.73,77.70],
+  ['Kerala','ml',9.93,76.27],['Kerala','ml',8.52,76.94],['Kerala','ml',11.25,75.78],['Kerala','ml',10.52,76.21],['Kerala','ml',11.87,75.37],
+  ['Karnataka','kn',12.97,77.59],['Karnataka','kn',12.30,76.64],['Karnataka','kn',12.91,74.86],['Karnataka','kn',15.36,75.12],['Karnataka','kn',17.33,76.83],
+  ['Andhra Pradesh / Telangana','te',17.38,78.48],['Andhra Pradesh / Telangana','te',16.51,80.65],['Andhra Pradesh / Telangana','te',17.69,83.22],['Andhra Pradesh / Telangana','te',13.63,79.42],['Andhra Pradesh / Telangana','te',17.97,79.60],['Andhra Pradesh / Telangana','te',15.83,78.04],
+  ['North India','hi',28.61,77.21],['North India','hi',26.85,80.95],['North India','hi',25.60,85.10],['North India','hi',26.91,75.79],['North India','hi',23.26,77.41],['North India','hi',23.34,85.31],['North India','hi',21.25,81.63],['North India','hi',30.32,78.03],
+];
+const DEMO_LOCS = [
+  ['Tamil Nadu (Coimbatore)',11.00,76.96],['Kerala (Kochi)',9.93,76.27],['Karnataka (Bengaluru)',12.97,77.59],
+  ['Telangana (Hyderabad)',17.38,78.48],['Uttar Pradesh (Lucknow)',26.85,80.95],['Outside these regions (Mumbai)',19.07,72.87]
+];
+
+const UI = {
+ en:{tap:'Tap the mic and speak',listening:'Listening…',thinking:'Understanding…',speaking:'Speaking…',heard:'You said',empty:'Your schemes will appear here after you speak.',schemes:'Schemes for you',listen:'Listen',stop:'Stop voice',apply:'Official site',samples:'Try a sample',placeholder:'Or type here…',send:'Send',start:'Start',profile:'What we understood',path:'Skill pathway (sample NSQF data)',
+   greet:"Hello! Tell me about your work, education and interests. Tap the microphone and speak.",
+   intro:"Based on what you said, these schemes may help you."},
+ hi:{tap:'माइक दबाकर बोलिए',listening:'सुन रहा हूँ…',thinking:'समझ रहा हूँ…',speaking:'बता रहा हूँ…',heard:'आपने कहा',empty:'बोलने के बाद आपकी योजनाएँ यहाँ दिखेंगी।',schemes:'आपके लिए योजनाएँ',listen:'सुनिए',stop:'रोकिए',apply:'आधिकारिक साइट',samples:'उदाहरण आज़माएँ',placeholder:'या यहाँ लिखिए…',send:'भेजिए',start:'शुरू करें',profile:'हमने क्या समझा',path:'कौशल मार्ग (नमूना एनएसक्यूएफ डेटा)',
+   greet:"नमस्ते! अपने काम, पढ़ाई और रुचियों के बारे में बताइए। माइक बटन दबाकर बोलिए।",
+   intro:"आपकी बात के आधार पर, ये योजनाएँ आपके काम आ सकती हैं।"},
+ ta:{tap:'மைக்கை அழுத்திப் பேசுங்கள்',listening:'கேட்கிறேன்…',thinking:'புரிந்துகொள்கிறேன்…',speaking:'சொல்கிறேன்…',heard:'நீங்கள் சொன்னது',empty:'நீங்கள் பேசிய பிறகு உங்களுக்கான திட்டங்கள் இங்கே தெரியும்.',schemes:'உங்களுக்கான திட்டங்கள்',listen:'கேளுங்கள்',stop:'நிறுத்து',apply:'அதிகாரப்பூர்வ தளம்',samples:'மாதிரிகளை முயற்சிக்கவும்',placeholder:'அல்லது இங்கே எழுதுங்கள்…',send:'அனுப்பு',start:'தொடங்கு',profile:'நாங்கள் புரிந்துகொண்டது',path:'திறன் பாதை (மாதிரி என்எஸ்க்யூஎஃப் தரவு)',
+   greet:"வணக்கம்! உங்கள் வேலை, படிப்பு மற்றும் விருப்பங்களைப் பற்றி சொல்லுங்கள். மைக் பொத்தானை அழுத்திப் பேசுங்கள்.",
+   intro:"நீங்கள் சொன்ன தகவலின் அடிப்படையில், இந்தத் திட்டங்கள் உங்களுக்கு உதவலாம்."},
+ te:{tap:'మైక్ నొక్కి మాట్లాడండి',listening:'వింటున్నాను…',thinking:'అర్థం చేసుకుంటున్నాను…',speaking:'చెబుతున్నాను…',heard:'మీరు చెప్పింది',empty:'మీరు మాట్లాడిన తర్వాత మీ పథకాలు ఇక్కడ కనిపిస్తాయి.',schemes:'మీ కోసం పథకాలు',listen:'వినండి',stop:'ఆపండి',apply:'అధికారిక సైట్',samples:'నమూనాలు ప్రయత్నించండి',placeholder:'లేదా ఇక్కడ రాయండి…',send:'పంపండి',start:'ప్రారంభించండి',profile:'మేము అర్థం చేసుకున్నది',path:'నైపుణ్య మార్గం (నమూనా ఎన్ఎస్‌క్యూఎఫ్ డేటా)',
+   greet:"నమస్కారం! మీ పని, చదువు, ఆసక్తుల గురించి చెప్పండి. మైక్ బటన్ నొక్కి మాట్లాడండి.",
+   intro:"మీరు చెప్పిన వివరాల ఆధారంగా, ఈ పథకాలు మీకు ఉపయోగపడవచ్చు."},
+ kn:{tap:'ಮೈಕ್ ಒತ್ತಿ ಮಾತನಾಡಿ',listening:'ಕೇಳುತ್ತಿದ್ದೇನೆ…',thinking:'ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ…',speaking:'ಹೇಳುತ್ತಿದ್ದೇನೆ…',heard:'ನೀವು ಹೇಳಿದ್ದು',empty:'ನೀವು ಮಾತನಾಡಿದ ನಂತರ ನಿಮ್ಮ ಯೋಜನೆಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.',schemes:'ನಿಮಗಾಗಿ ಯೋಜನೆಗಳು',listen:'ಕೇಳಿ',stop:'ನಿಲ್ಲಿಸಿ',apply:'ಅಧಿಕೃತ ಸೈಟ್',samples:'ಮಾದರಿಗಳನ್ನು ಪ್ರಯತ್ನಿಸಿ',placeholder:'ಅಥವಾ ಇಲ್ಲಿ ಬರೆಯಿರಿ…',send:'ಕಳುಹಿಸಿ',start:'ಪ್ರಾರಂಭಿಸಿ',profile:'ನಾವು ಅರ್ಥಮಾಡಿಕೊಂಡದ್ದು',path:'ಕೌಶಲ್ಯ ಮಾರ್ಗ (ಮಾದರಿ ಎನ್‌ಎಸ್‌ಕ್ಯೂಎಫ್ ಡೇಟಾ)',
+   greet:"ನಮಸ್ಕಾರ! ನಿಮ್ಮ ಕೆಲಸ, ಓದು ಮತ್ತು ಆಸಕ್ತಿಗಳ ಬಗ್ಗೆ ಹೇಳಿ. ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ ಮಾತನಾಡಿ.",
+   intro:"ನೀವು ಹೇಳಿದ ವಿವರಗಳ ಆಧಾರದ ಮೇಲೆ, ಈ ಯೋಜನೆಗಳು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಬಹುದು."},
+ ml:{tap:'മൈക്ക് അമർത്തി സംസാരിക്കൂ',listening:'കേൾക്കുന്നു…',thinking:'മനസ്സിലാക്കുന്നു…',speaking:'പറയുന്നു…',heard:'നിങ്ങൾ പറഞ്ഞത്',empty:'നിങ്ങൾ സംസാരിച്ച ശേഷം നിങ്ങൾക്കുള്ള പദ്ധതികൾ ഇവിടെ കാണാം.',schemes:'നിങ്ങൾക്കുള്ള പദ്ധതികൾ',listen:'കേൾക്കൂ',stop:'നിർത്തൂ',apply:'ഔദ്യോഗിക സൈറ്റ്',samples:'സാമ്പിളുകൾ പരീക്ഷിക്കൂ',placeholder:'അല്ലെങ്കിൽ ഇവിടെ എഴുതൂ…',send:'അയയ്ക്കൂ',start:'തുടങ്ങാം',profile:'ഞങ്ങൾ മനസ്സിലാക്കിയത്',path:'നൈപുണ്യ പാത (സാമ്പിൾ എൻഎസ്‌ക്യുഎഫ് ഡാറ്റ)',
+   greet:"നമസ്കാരം! നിങ്ങളുടെ ജോലി, പഠനം, താൽപര്യങ്ങൾ എന്നിവയെക്കുറിച്ച് പറയൂ. മൈക്ക് ബട്ടൺ അമർത്തി സംസാരിക്കൂ.",
+   intro:"നിങ്ങൾ പറഞ്ഞതിന്റെ അടിസ്ഥാനത്തിൽ, ഈ പദ്ധതികൾ നിങ്ങൾക്ക് സഹായകമായേക്കാം."},
+};
+
+const TAGLABEL = {
+ farmer:  {en:'Farmer',hi:'किसान',ta:'விவசாயி',te:'రైతు',kn:'ರೈತ',ml:'കർഷകൻ'},
+ artisan: {en:'Tailor / artisan',hi:'दर्जी / कारीगर',ta:'தையல் / கைவினை',te:'కుట్టు / చేతివృత్తి',kn:'ಹೊಲಿಗೆ / ಕರಕುಶಲ',ml:'തയ്യൽ / കരകൗശലം'},
+ student: {en:'Student',hi:'विद्यार्थी',ta:'மாணவர்',te:'విద్యార్థి',kn:'ವಿದ್ಯಾರ್ಥಿ',ml:'വിദ്യാർത്ഥി'},
+ woman:   {en:'Woman',hi:'महिला',ta:'பெண்',te:'మహిళ',kn:'ಮಹಿಳೆ',ml:'സ്ത്രീ'},
+ business:{en:'Business / loan',hi:'व्यवसाय / कर्ज',ta:'தொழில் / கடன்',te:'వ్యాపారం / రుణం',kn:'ವ್ಯಾಪಾರ / ಸಾಲ',ml:'ബിസിനസ് / വായ്പ'},
+ skill:   {en:'Skills / jobs',hi:'कौशल / रोज़गार',ta:'திறன் / வேலை',te:'నైపుణ్యం / ఉద్యోగం',kn:'ಕೌಶಲ್ಯ / ಉದ್ಯೋಗ',ml:'നൈപുണ്യം / ജോലി'},
+ edu10:   {en:'Class 10',hi:'दसवीं',ta:'பத்தாம் வகுப்பு',te:'పదో తరగతి',kn:'ಹತ್ತನೇ ತರಗತಿ',ml:'പത്താം ക്ലാസ്'},
+};
+
+/* Words that reveal each tag, in all six languages (matched anywhere in what the user said). */
+const KEYWORDS = {
+ farmer:['farm','agricultur','crop','kisan','किसान','खेती','விவசாய','வேளாண்','రైతు','వ్యవసాయ','ರೈತ','ಕೃಷಿ','കർഷക','കൃഷി'],
+ artisan:['tailor','stitch','sewing','carpent','craft','artisan','weav','potter','mason','सिलाई','दर्जी','कारीगर','बढ़ई','தையல்','தச்சு','கைவினை','నేత','కుట్టు','చేతివృత్తి','ಹೊಲಿಗೆ','ಕರಕುಶಲ','ಬಡಗಿ','തയ്യൽ','കരകൗശല','മരപ്പണി'],
+ student:['student','college','scholarship','studying','विद्यार्थी','छात्र','कॉलेज','மாணவ','கல்லூரி','உதவித்தொகை','విద్యార్థ','కాలేజీ','ಕಾಲೇಜು','ವಿದ್ಯಾರ್ಥಿ','വിദ്യാർത്ഥി','കോളേജ്'],
+ woman:['woman','women','lady','girl','self help','shg','महिला','औरत','பெண்','மகளிர்','మహిళ','ಮಹಿಳೆ','സ്ത്രീ'],
+ business:['business','shop','loan','entrepreneur','self employ','own work','व्यवसाय','व्यापार','दुकान','कर्ज','ऋण','लोन','தொழில்','கடை','கடன்','வியாபார','వ్యాపార','రుణ','దుకాణ','లోన్','ವ್ಯಾಪಾರ','ಸಾಲ','ಅಂಗಡಿ','ബിസിനസ്','വായ്പ','സംരംഭ'],
+ skill:['skill','train','job','employ','learn','course','कौशल','प्रशिक्षण','नौकरी','रोज़गार','रोजगार','सीखना','திறன்','பயிற்சி','வேலை','கற்று','నైపుణ్య','శిక్షణ','ఉద్యోగ','ఉపాధి','నేర్చుకో','ಕೌಶಲ್ಯ','ತರಬೇತಿ','ಕೆಲಸ','ಉದ್ಯೋಗ','ಕಲಿ','നൈപുണ്യ','പരിശീലന','ജോലി','തൊഴിൽ','കഴിവ്'],
+ edu10:['10th','tenth','class 10','class ten','दसवीं','दसवी','பத்தாம்','పదో','పదవ','ಹತ್ತನೇ','പത്താം'],
+};
+
+const SAMPLES = {
+ farmer:{
+  en:"I am a farmer with two acres. I studied up to 10th class and want to learn a new skill and get a loan.",
+  hi:"मैं एक किसान हूँ, मेरे पास दो एकड़ खेत है। मैंने दसवीं तक पढ़ाई की है और मुझे नया कौशल सीखना है और कर्ज चाहिए।",
+  ta:"நான் ஒரு விவசாயி. பத்தாம் வகுப்பு வரை படித்துள்ளேன். புதிய திறன் கற்று கடன் பெற விரும்புகிறேன்.",
+  te:"నేను ఒక రైతును. పదో తరగతి వరకు చదివాను. కొత్త నైపుణ్యం నేర్చుకోవాలి మరియు రుణం కావాలి.",
+  kn:"ನಾನು ಒಬ್ಬ ರೈತ. ಹತ್ತನೇ ತರಗತಿಯವರೆಗೆ ಓದಿದ್ದೇನೆ. ಹೊಸ ಕೌಶಲ್ಯ ಕಲಿಯಬೇಕು ಮತ್ತು ಸಾಲ ಬೇಕು.",
+  ml:"ഞാൻ ഒരു കർഷകനാണ്. പത്താം ക്ലാസ് വരെ പഠിച്ചു. പുതിയ കഴിവ് പഠിക്കണം, വായ്പയും വേണം."},
+ tailor:{
+  en:"I am a woman. I do tailoring at home and want to start my own business. I need training and a loan.",
+  hi:"मैं एक महिला हूँ। मैं घर पर सिलाई करती हूँ और अपना व्यवसाय शुरू करना चाहती हूँ। मुझे प्रशिक्षण और कर्ज चाहिए।",
+  ta:"நான் ஒரு பெண். வீட்டில் தையல் வேலை செய்கிறேன். சொந்தமாக தொழில் தொடங்க விரும்புகிறேன். பயிற்சியும் கடனும் வேண்டும்.",
+  te:"నేను ఒక మహిళను. ఇంట్లో కుట్టు పని చేస్తాను. సొంత వ్యాపారం మొదలుపెట్టాలి. శిక్షణ మరియు రుణం కావాలి.",
+  kn:"ನಾನು ಒಬ್ಬ ಮಹಿಳೆ. ಮನೆಯಲ್ಲಿ ಹೊಲಿಗೆ ಕೆಲಸ ಮಾಡುತ್ತೇನೆ. ನನ್ನದೇ ಆದ ವ್ಯಾಪಾರ ಶುರು ಮಾಡಬೇಕು. ತರಬೇತಿ ಮತ್ತು ಸಾಲ ಬೇಕು.",
+  ml:"ഞാൻ ഒരു സ്ത്രീയാണ്. വീട്ടിൽ തയ്യൽ ജോലി ചെയ്യുന്നു. സ്വന്തമായി ബിസിനസ് തുടങ്ങണം. പരിശീലനവും വായ്പയും വേണം."},
+ student:{
+  en:"I am a student in college and I am looking for a scholarship and a job after my course.",
+  hi:"मैं कॉलेज का विद्यार्थी हूँ और मुझे छात्रवृत्ति और पढ़ाई के बाद नौकरी चाहिए।",
+  ta:"நான் கல்லூரி மாணவர். உதவித்தொகையும் படிப்புக்குப் பிறகு வேலையும் தேடுகிறேன்.",
+  te:"నేను కాలేజీ విద్యార్థిని. స్కాలర్‌షిప్ మరియు చదువు తర్వాత ఉద్యోగం కావాలి.",
+  kn:"ನಾನು ಕಾಲೇಜು ವಿದ್ಯಾರ್ಥಿ. ವಿದ್ಯಾರ್ಥಿ ವೇತನ ಮತ್ತು ಓದಿನ ನಂತರ ಉದ್ಯೋಗ ಬೇಕು.",
+  ml:"ഞാൻ കോളേജ് വിദ്യാർത്ഥിയാണ്. സ്കോളർഷിപ്പും പഠനശേഷം ജോലിയും വേണം."},
+};
+const SAMPLE_TAG = {farmer:'farmer', tailor:'artisan', student:'student'};
+
+/* Demo scheme database. Replace with the ChromaDB-backed data later. */
+const SCHEMES = [
+ {id:'pmajay', name:'PM-AJAY (GIA component)', cat:'Grants for SC communities', tags:[], url:'https://pmajay.dosje.gov.in/',
+  en:"PM-AJAY supports Scheduled Caste communities with grants for skill training and income-generating activities in your area. Visit your district social welfare office to apply.",
+  hi:"पीएम-अजय के तहत अनुसूचित जाति के लोगों को कौशल प्रशिक्षण और आय बढ़ाने वाली गतिविधियों के लिए सहायता मिलती है। आवेदन के लिए अपने जिले के समाज कल्याण कार्यालय जाइए।",
+  ta:"பிஎம்-அஜய் திட்டம் பட்டியல் சாதி மக்களுக்குத் திறன் பயிற்சி மற்றும் வருமானம் தரும் தொழில்களுக்கு நிதி உதவி வழங்குகிறது. விண்ணப்பிக்க உங்கள் மாவட்ட சமூக நல அலுவலகத்தை அணுகுங்கள்.",
+  te:"పీఎం-అజయ్ పథకం షెడ్యూల్డ్ కులాల వారికి నైపుణ్య శిక్షణ మరియు ఆదాయం పెంచే కార్యకలాపాలకు సహాయం అందిస్తుంది. దరఖాస్తు కోసం మీ జిల్లా సంక్షేమ కార్యాలయాన్ని సంప్రదించండి.",
+  kn:"ಪಿಎಂ-ಅಜಯ್ ಯೋಜನೆಯು ಪರಿಶಿಷ್ಟ ಜಾತಿಯ ಜನರಿಗೆ ಕೌಶಲ್ಯ ತರಬೇತಿ ಮತ್ತು ಆದಾಯ ಹೆಚ್ಚಿಸುವ ಚಟುವಟಿಕೆಗಳಿಗೆ ಸಹಾಯ ನೀಡುತ್ತದೆ. ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ನಿಮ್ಮ ಜಿಲ್ಲೆಯ ಸಮಾಜ ಕಲ್ಯಾಣ ಕಚೇರಿಯನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+  ml:"പിഎം-അജയ് പദ്ധതി പട്ടികജാതി വിഭാഗക്കാർക്ക് നൈപുണ്യ പരിശീലനത്തിനും വരുമാനം നൽകുന്ന പ്രവർത്തനങ്ങൾക്കും സഹായം നൽകുന്നു. അപേക്ഷിക്കാൻ നിങ്ങളുടെ ജില്ലയിലെ സാമൂഹ്യക്ഷേമ ഓഫീസുമായി ബന്ധപ്പെടുക."},
+ {id:'pmdaksh', name:'PM-DAKSH', cat:'Free skill training', tags:['skill','artisan','woman'], url:'https://pmdaksh.dosje.gov.in/',
+  en:"PM-DAKSH offers free skill training for Scheduled Caste youth, so you can earn a certificate and find better work.",
+  hi:"पीएम-दक्ष योजना में अनुसूचित जाति के युवाओं को मुफ़्त कौशल प्रशिक्षण मिलता है, जिससे आप प्रमाणपत्र पाकर बेहतर काम पा सकते हैं।",
+  ta:"பிஎம்-தக்ஷ் திட்டம் பட்டியல் சாதி இளைஞர்களுக்கு இலவசத் திறன் பயிற்சி வழங்குகிறது. சான்றிதழ் பெற்று நல்ல வேலை பெறலாம்.",
+  te:"పీఎం-దక్ష్ పథకం షెడ్యూల్డ్ కులాల యువతకు ఉచిత నైపుణ్య శిక్షణ ఇస్తుంది. సర్టిఫికెట్ పొంది మంచి ఉద్యోగం సంపాదించవచ్చు.",
+  kn:"ಪಿಎಂ-ದಕ್ಷ್ ಯೋಜನೆಯು ಪರಿಶಿಷ್ಟ ಜಾತಿಯ ಯುವಕರಿಗೆ ಉಚಿತ ಕೌಶಲ್ಯ ತರಬೇತಿ ನೀಡುತ್ತದೆ. ಪ್ರಮಾಣಪತ್ರ ಪಡೆದು ಉತ್ತಮ ಕೆಲಸ ಪಡೆಯಬಹುದು.",
+  ml:"പിഎം-ദക്ഷ് പദ്ധതി പട്ടികജാതി യുവാക്കൾക്ക് സൗജന്യ നൈപുണ്യ പരിശീലനം നൽകുന്നു. സർട്ടിഫിക്കറ്റ് നേടി മെച്ചപ്പെട്ട ജോലി കണ്ടെത്താം."},
+ {id:'pmkvy', name:'PMKVY (Skill India)', cat:'Short courses with NSQF certificate', tags:['skill','student','farmer','artisan'], url:'https://www.skillindiadigital.gov.in/',
+  en:"Skill India's PMKVY gives short training courses with a nationally recognised NSQF certificate, which helps you get a job or start your own work.",
+  hi:"प्रधानमंत्री कौशल विकास योजना में छोटे प्रशिक्षण कोर्स होते हैं और राष्ट्रीय स्तर पर मान्य एन एस क्यू एफ प्रमाणपत्र मिलता है, जिससे नौकरी या अपना काम शुरू करना आसान होता है।",
+  ta:"பிரதமரின் கவுஷல் விகாஸ் திட்டம் குறுகிய காலப் பயிற்சிகளையும், நாடு முழுவதும் செல்லுபடியாகும் என் எஸ் க்யூ எஃப் சான்றிதழையும் வழங்குகிறது. இது வேலை பெறவோ சொந்தத் தொழில் தொடங்கவோ உதவும்.",
+  te:"ప్రధానమంత్రి కౌశల్ వికాస్ యోజన స్వల్పకాలిక శిక్షణలు మరియు దేశవ్యాప్తంగా గుర్తింపు ఉన్న ఎన్ఎస్‌క్యూఎఫ్ సర్టిఫికెట్ ఇస్తుంది. ఇది ఉద్యోగం పొందడానికి లేదా సొంత పని ప్రారంభించడానికి సహాయపడుతుంది.",
+  kn:"ಪ್ರಧಾನಮಂತ್ರಿ ಕೌಶಲ್ ವಿಕಾಸ್ ಯೋಜನೆಯು ಕಿರು ತರಬೇತಿ ಕೋರ್ಸ್‌ಗಳನ್ನು ಮತ್ತು ದೇಶಾದ್ಯಂತ ಮಾನ್ಯವಾದ ಎನ್‌ಎಸ್‌ಕ್ಯೂಎಫ್ ಪ್ರಮಾಣಪತ್ರವನ್ನು ನೀಡುತ್ತದೆ. ಇದು ಕೆಲಸ ಪಡೆಯಲು ಅಥವಾ ಸ್ವಂತ ಕೆಲಸ ಆರಂಭಿಸಲು ಸಹಾಯಕ.",
+  ml:"പ്രധാനമന്ത്രി കൗശൽ വികാസ് യോജന ഹ്രസ്വകാല പരിശീലനവും രാജ്യമാകെ അംഗീകാരമുള്ള എൻഎസ്‌ക്യുഎഫ് സർട്ടിഫിക്കറ്റും നൽകുന്നു. ഇത് ജോലി നേടാനോ സ്വന്തം സംരംഭം തുടങ്ങാനോ സഹായിക്കും."},
+ {id:'nsfdc', name:'NSFDC loans', cat:'Low-interest business loans', tags:['business','farmer','artisan','woman'], url:'https://nsfdc.nic.in/',
+  en:"NSFDC gives low-interest loans to Scheduled Caste people to start or grow a business, through your state's SC development corporation.",
+  hi:"एन एस एफ डी सी अनुसूचित जाति के लोगों को अपना व्यवसाय शुरू करने या बढ़ाने के लिए कम ब्याज पर कर्ज देता है। यह आपके राज्य के अनुसूचित जाति विकास निगम के माध्यम से मिलता है।",
+  ta:"என் எஸ் எஃப் டி சி பட்டியல் சாதி மக்கள் தொழில் தொடங்கவும் வளர்க்கவும் குறைந்த வட்டியில் கடன் வழங்குகிறது. இது உங்கள் மாநில பட்டியல் சாதியினர் மேம்பாட்டுக் கழகம் வழியாகக் கிடைக்கும்.",
+  te:"ఎన్ఎస్‌ఎఫ్‌డీసీ షెడ్యూల్డ్ కులాల వారికి వ్యాపారం ప్రారంభించడానికి లేదా విస్తరించడానికి తక్కువ వడ్డీకి రుణం ఇస్తుంది. ఇది మీ రాష్ట్ర షెడ్యూల్డ్ కులాల అభివృద్ధి సంస్థ ద్వారా లభిస్తుంది.",
+  kn:"ಎನ್‌ಎಸ್‌ಎಫ್‌ಡಿಸಿ ಪರಿಶಿಷ್ಟ ಜಾತಿಯ ಜನರಿಗೆ ವ್ಯಾಪಾರ ಆರಂಭಿಸಲು ಅಥವಾ ವಿಸ್ತರಿಸಲು ಕಡಿಮೆ ಬಡ್ಡಿಯ ಸಾಲ ನೀಡುತ್ತದೆ. ಇದು ನಿಮ್ಮ ರಾಜ್ಯದ ಪರಿಶಿಷ್ಟ ಜಾತಿ ಅಭಿವೃದ್ಧಿ ನಿಗಮದ ಮೂಲಕ ದೊರೆಯುತ್ತದೆ.",
+  ml:"എൻഎസ്‌എഫ്‌ഡിസി പട്ടികജാതി വിഭാഗക്കാർക്ക് ബിസിനസ് തുടങ്ങാനോ വളർത്താനോ കുറഞ്ഞ പലിശയിൽ വായ്പ നൽകുന്നു. ഇത് നിങ്ങളുടെ സംസ്ഥാനത്തെ പട്ടികജാതി വികസന കോർപ്പറേഷൻ വഴി ലഭിക്കും."},
+ {id:'pmkisan', name:'PM-KISAN', cat:'Income support for farmers', tags:['farmer'], url:'https://pmkisan.gov.in/',
+  en:"PM-KISAN gives eligible farmer families 6,000 rupees every year in three instalments, sent directly to the bank account.",
+  hi:"पीएम-किसान योजना में पात्र किसान परिवारों को हर साल छह हज़ार रुपये तीन किस्तों में सीधे बैंक खाते में मिलते हैं।",
+  ta:"பிஎம்-கிசான் திட்டத்தில் தகுதியுள்ள விவசாயக் குடும்பங்களுக்கு ஆண்டுக்கு ஆறாயிரம் ரூபாய் மூன்று தவணைகளில் நேரடியாக வங்கிக் கணக்கில் வரும்.",
+  te:"పీఎం-కిసాన్ పథకంలో అర్హులైన రైతు కుటుంబాలకు ఏటా ఆరు వేల రూపాయలు మూడు విడతలుగా నేరుగా బ్యాంకు ఖాతాలో జమ అవుతాయి.",
+  kn:"ಪಿಎಂ-ಕಿಸಾನ್ ಯೋಜನೆಯಲ್ಲಿ ಅರ್ಹ ರೈತ ಕುಟುಂಬಗಳಿಗೆ ವರ್ಷಕ್ಕೆ ಆರು ಸಾವಿರ ರೂಪಾಯಿಗಳು ಮೂರು ಕಂತುಗಳಲ್ಲಿ ನೇರವಾಗಿ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ಜಮೆಯಾಗುತ್ತವೆ.",
+  ml:"പിഎം-കിസാൻ പദ്ധതിയിൽ അർഹരായ കർഷക കുടുംബങ്ങൾക്ക് വർഷം ആറായിരം രൂപ മൂന്ന് ഗഡുക്കളായി നേരിട്ട് ബാങ്ക് അക്കൗണ്ടിൽ ലഭിക്കും."},
+ {id:'vishwakarma', name:'PM Vishwakarma', cat:'Support for artisans', tags:['artisan'], url:'https://pmvishwakarma.gov.in/',
+  en:"PM Vishwakarma helps artisans and craftspeople with skill training, a daily stipend, a toolkit grant and low-interest loans.",
+  hi:"पीएम विश्वकर्मा योजना कारीगरों और शिल्पकारों को प्रशिक्षण, रोज़ का भत्ता, औज़ारों के लिए सहायता और कम ब्याज पर कर्ज देती है।",
+  ta:"பிஎம் விஸ்வகர்மா திட்டம் கைவினைஞர்களுக்குப் பயிற்சி, தினசரி உதவித்தொகை, கருவிகளுக்கான உதவி மற்றும் குறைந்த வட்டிக் கடன் வழங்குகிறது.",
+  te:"పీఎం విశ్వకర్మ పథకం చేతివృత్తుల వారికి శిక్షణ, రోజువారీ భత్యం, పనిముట్లకు సహాయం మరియు తక్కువ వడ్డీ రుణం అందిస్తుంది.",
+  kn:"ಪಿಎಂ ವಿಶ್ವಕರ್ಮ ಯೋಜನೆಯು ಕುಶಲಕರ್ಮಿಗಳಿಗೆ ತರಬೇತಿ, ದಿನದ ಭತ್ಯೆ, ಉಪಕರಣಗಳಿಗೆ ಸಹಾಯ ಮತ್ತು ಕಡಿಮೆ ಬಡ್ಡಿಯ ಸಾಲ ನೀಡುತ್ತದೆ.",
+  ml:"പിഎം വിശ്വകർമ്മ പദ്ധതി കരകൗശല തൊഴിലാളികൾക്ക് പരിശീലനം, ദിവസ അലവൻസ്, ഉപകരണങ്ങൾക്കുള്ള സഹായം, കുറഞ്ഞ പലിശയിൽ വായ്പ എന്നിവ നൽകുന്നു."},
+ {id:'postmatric', name:'Post Matric Scholarship for SC', cat:'Scholarship', tags:['student'], url:'https://scholarships.gov.in/',
+  en:"The Post Matric Scholarship helps Scheduled Caste students after class ten with fees and study costs, if the family income is within the limit.",
+  hi:"पोस्ट मैट्रिक छात्रवृत्ति दसवीं के बाद पढ़ने वाले अनुसूचित जाति के छात्रों की फ़ीस और पढ़ाई का खर्च उठाने में मदद करती है, अगर परिवार की आय सीमा के भीतर हो।",
+  ta:"பத்தாம் வகுப்புக்குப் பிறகு படிக்கும் பட்டியல் சாதி மாணவர்களுக்குக் கல்விக் கட்டணம் மற்றும் படிப்புச் செலவுக்கு உதவும் திட்டம் இது. குடும்ப வருமானம் வரம்புக்குள் இருக்க வேண்டும்.",
+  te:"పదో తరగతి తర్వాత చదివే షెడ్యూల్డ్ కులాల విద్యార్థులకు ఫీజులు మరియు చదువు ఖర్చులకు ఈ ఉపకార వేతనం సహాయపడుతుంది. కుటుంబ ఆదాయం పరిమితిలో ఉండాలి.",
+  kn:"ಹತ್ತನೇ ತರಗತಿಯ ನಂತರ ಓದುವ ಪರಿಶಿಷ್ಟ ಜಾತಿಯ ವಿದ್ಯಾರ್ಥಿಗಳಿಗೆ ಶುಲ್ಕ ಮತ್ತು ಓದಿನ ಖರ್ಚಿಗೆ ಈ ವಿದ್ಯಾರ್ಥಿ ವೇತನ ಸಹಾಯ ಮಾಡುತ್ತದೆ. ಕುಟುಂಬದ ಆದಾಯ ಮಿತಿಯೊಳಗೆ ಇರಬೇಕು.",
+  ml:"പത്താം ക്ലാസിന് ശേഷം പഠിക്കുന്ന പട്ടികജാതി വിദ്യാർത്ഥികൾക്ക് ഫീസും പഠനച്ചെലവും നേരിടാൻ ഈ സ്കോളർഷിപ്പ് സഹായിക്കുന്നു. കുടുംബ വരുമാനം പരിധിക്കുള്ളിൽ ആയിരിക്കണം."},
+ {id:'nrlm', name:'DAY-NRLM (Self-help groups)', cat:'Women self-help groups', tags:['woman'], url:'https://aajeevika.gov.in/',
+  en:"DAY-NRLM helps women form self-help groups to save money, get bank loans and start small businesses.",
+  hi:"दीन दयाल अंत्योदय योजना, राष्ट्रीय ग्रामीण आजीविका मिशन, महिलाओं को स्वयं सहायता समूह बनाने, बचत करने, बैंक से कर्ज लेने और छोटा व्यवसाय शुरू करने में मदद करता है।",
+  ta:"தீன் தயாள் அந்த்யோதயா தேசிய ஊரக வாழ்வாதார இயக்கம் பெண்கள் சுய உதவிக் குழு அமைக்கவும், சேமிக்கவும், வங்கிக் கடன் பெறவும், சிறு தொழில் தொடங்கவும் உதவுகிறது.",
+  te:"దీన్ దయాళ్ అంత్యోదయ జాతీయ గ్రామీణ జీవనోపాధి మిషన్ మహిళలు స్వయం సహాయక సంఘాలు ఏర్పాటు చేసుకోవడానికి, పొదుపు చేయడానికి, బ్యాంకు రుణం పొందడానికి మరియు చిన్న వ్యాపారం ప్రారంభించడానికి సహాయపడుతుంది.",
+  kn:"ದೀನ್ ದಯಾಳ್ ಅಂತ್ಯೋದಯ ರಾಷ್ಟ್ರೀಯ ಗ್ರಾಮೀಣ ಜೀವನೋಪಾಯ ಮಿಷನ್ ಮಹಿಳೆಯರಿಗೆ ಸ್ವಸಹಾಯ ಗುಂಪು ರಚಿಸಲು, ಉಳಿತಾಯ ಮಾಡಲು, ಬ್ಯಾಂಕ್ ಸಾಲ ಪಡೆಯಲು ಮತ್ತು ಸಣ್ಣ ವ್ಯಾಪಾರ ಆರಂಭಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+  ml:"ദീൻ ദയാൽ അന്ത്യോദയ ദേശീയ ഗ്രാമീണ ഉപജീവന മിഷൻ സ്ത്രീകൾക്ക് സ്വയം സഹായ സംഘം രൂപീകരിക്കാനും സമ്പാദിക്കാനും ബാങ്ക് വായ്പ നേടാനും ചെറുകിട ബിസിനസ് തുടങ്ങാനും സഹായിക്കുന്നു."},
+];
+
+
+/* Scheme names, categories, pathway names and labels in every language (so nothing shows only in English). */
+const SCHEME_NAME = {
+ pmajay:{en:'PM-AJAY (GIA component)',hi:'पीएम-अजय (अनुदान घटक)',ta:'பிஎம்-அஜய் (நிதி உதவிப் பகுதி)',te:'పీఎం-అజయ్ (గ్రాంట్ విభాగం)',kn:'ಪಿಎಂ-ಅಜಯ್ (ಅನುದಾನ ಘಟಕ)',ml:'പിഎം-അജയ് (ഗ്രാന്റ് ഘടകം)'},
+ pmdaksh:{en:'PM-DAKSH',hi:'पीएम-दक्ष',ta:'பிஎம்-தக்ஷ்',te:'పీఎం-దక్ష్',kn:'ಪಿಎಂ-ದಕ್ಷ್',ml:'പിഎം-ദക്ഷ്'},
+ pmkvy:{en:'PMKVY (Skill India)',hi:'पीएमकेवीवाई (स्किल इंडिया)',ta:'பிஎம்கேவிஒய் (ஸ்கில் இந்தியா)',te:'పీఎంకేవీవై (స్కిల్ ఇండియా)',kn:'ಪಿಎಂಕೆವಿವೈ (ಸ್ಕಿಲ್ ಇಂಡಿಯಾ)',ml:'പിഎംകെവിവൈ (സ്കിൽ ഇന്ത്യ)'},
+ nsfdc:{en:'NSFDC loans',hi:'एनएसएफडीसी कर्ज',ta:'என்எஸ்எஃப்டிசி கடன்',te:'ఎన్ఎస్‌ఎఫ్‌డీసీ రుణాలు',kn:'ಎನ್‌ಎಸ್‌ಎಫ್‌ಡಿಸಿ ಸಾಲ',ml:'എൻഎസ്‌എഫ്‌ഡിസി വായ്പ'},
+ pmkisan:{en:'PM-KISAN',hi:'पीएम-किसान',ta:'பிஎம்-கிசான்',te:'పీఎం-కిసాన్',kn:'ಪಿಎಂ-ಕಿಸಾನ್',ml:'പിഎം-കിസാൻ'},
+ vishwakarma:{en:'PM Vishwakarma',hi:'पीएम विश्वकर्मा',ta:'பிஎம் விஸ்வகர்மா',te:'పీఎం విశ్వకర్మ',kn:'ಪಿಎಂ ವಿಶ್ವಕರ್ಮ',ml:'പിഎം വിശ്വകർമ്മ'},
+ postmatric:{en:'Post Matric Scholarship for SC',hi:'अनुसूचित जाति के लिए पोस्ट मैट्रिक छात्रवृत्ति',ta:'பட்டியல் சாதியினருக்கான போஸ்ட் மெட்ரிக் உதவித்தொகை',te:'షెడ్యూల్డ్ కులాలకు పోస్ట్ మెట్రిక్ ఉపకార వేతనం',kn:'ಪರಿಶಿಷ್ಟ ಜಾತಿಗೆ ಪೋಸ್ಟ್ ಮೆಟ್ರಿಕ್ ವಿದ್ಯಾರ್ಥಿ ವೇತನ',ml:'പട്ടികജാതിക്കാർക്കുള്ള പോസ്റ്റ് മെട്രിക് സ്കോളർഷിപ്പ്'},
+ nrlm:{en:'DAY-NRLM (Self-help groups)',hi:'दीनदयाल अंत्योदय-एनआरएलएम (स्वयं सहायता समूह)',ta:'தீன்தயாள்-என்ஆர்எல்எம் (சுய உதவிக் குழுக்கள்)',te:'దీన్‌దయాళ్-ఎన్ఆర్ఎల్ఎం (స్వయం సహాయక సంఘాలు)',kn:'ದೀನ್‌ದಯಾಳ್-ಎನ್‌ಆರ್‌ಎಲ್‌ಎಂ (ಸ್ವಸಹಾಯ ಗುಂಪುಗಳು)',ml:'ദീൻദയാൽ-എൻആർഎൽഎം (സ്വയം സഹായ സംഘങ്ങൾ)'},
+};
+const SCHEME_CAT = {
+ pmajay:{en:'Grants for SC communities',hi:'अनुसूचित जाति समुदायों के लिए अनुदान',ta:'பட்டியல் சாதி சமூகங்களுக்கான நிதி உதவி',te:'షెడ్యూల్డ్ కులాల వారికి గ్రాంట్లు',kn:'ಪರಿಶಿಷ್ಟ ಜಾತಿ ಸಮುದಾಯಗಳಿಗೆ ಅನುದಾನ',ml:'പട്ടികജാതി സമൂഹങ്ങൾക്കുള്ള ഗ്രാന്റ്'},
+ pmdaksh:{en:'Free skill training',hi:'मुफ़्त कौशल प्रशिक्षण',ta:'இலவசத் திறன் பயிற்சி',te:'ఉచిత నైపుణ్య శిక్షణ',kn:'ಉಚಿತ ಕೌಶಲ್ಯ ತರಬೇತಿ',ml:'സൗജന്യ നൈപുണ്യ പരിശീലനം'},
+ pmkvy:{en:'Short courses with NSQF certificate',hi:'एनएसक्यूएफ प्रमाणपत्र वाले छोटे कोर्स',ta:'என்எஸ்க்யூஎஃப் சான்றிதழுடன் குறுகிய படிப்புகள்',te:'ఎన్ఎస్‌క్యూఎఫ్ సర్టిఫికెట్‌తో స్వల్పకాలిక కోర్సులు',kn:'ಎನ್‌ಎಸ್‌ಕ್ಯೂಎಫ್ ಪ್ರಮಾಣಪತ್ರದೊಂದಿಗೆ ಕಿರು ಕೋರ್ಸ್‌ಗಳು',ml:'എൻഎസ്‌ക്യുഎഫ് സർട്ടിഫിക്കറ്റോടെ ഹ്രസ്വ കോഴ്സുകൾ'},
+ nsfdc:{en:'Low-interest business loans',hi:'कम ब्याज वाले व्यवसाय कर्ज',ta:'குறைந்த வட்டி தொழில் கடன்',te:'తక్కువ వడ్డీ వ్యాపార రుణాలు',kn:'ಕಡಿಮೆ ಬಡ್ಡಿಯ ವ್ಯಾಪಾರ ಸಾಲ',ml:'കുറഞ്ഞ പലിശയുള്ള ബിസിനസ് വായ്പ'},
+ pmkisan:{en:'Income support for farmers',hi:'किसानों के लिए आय सहायता',ta:'விவசாயிகளுக்கான வருமான உதவி',te:'రైతులకు ఆదాయ సహాయం',kn:'ರೈತರಿಗೆ ಆದಾಯ ಬೆಂಬಲ',ml:'കർഷകർക്കുള്ള വരുമാന സഹായം'},
+ vishwakarma:{en:'Support for artisans',hi:'कारीगरों के लिए सहायता',ta:'கைவினைஞர்களுக்கான உதவி',te:'చేతివృత్తుల వారికి సహాయం',kn:'ಕುಶಲಕರ್ಮಿಗಳಿಗೆ ಬೆಂಬಲ',ml:'കരകൗശല തൊഴിലാളികൾക്കുള്ള സഹായം'},
+ postmatric:{en:'Scholarship',hi:'छात्रवृत्ति',ta:'உதவித்தொகை',te:'ఉపకార వేతనం',kn:'ವಿದ್ಯಾರ್ಥಿ ವೇತನ',ml:'സ്കോളർഷിപ്പ്'},
+ nrlm:{en:'Women self-help groups',hi:'महिला स्वयं सहायता समूह',ta:'மகளிர் சுய உதவிக் குழுக்கள்',te:'మహిళా స్వయం సహాయక సంఘాలు',kn:'ಮಹಿಳಾ ಸ್ವಸಹಾಯ ಗುಂಪುಗಳು',ml:'വനിതാ സ്വയം സഹായ സംഘങ്ങൾ'},
+};
+const PATH_NAME = {
+ farmer:{en:'Organic Grower',hi:'जैविक उत्पादक',ta:'இயற்கை விவசாய உற்பத்தியாளர்',te:'సేంద్రీయ సాగుదారు',kn:'ಸಾವಯವ ಬೆಳೆಗಾರ',ml:'ജൈവ കർഷകൻ'},
+ artisan:{en:'Sewing Machine Operator',hi:'सिलाई मशीन ऑपरेटर',ta:'தையல் இயந்திர இயக்குபவர்',te:'కుట్టు మిషన్ ఆపరేటర్',kn:'ಹೊಲಿಗೆ ಯಂತ್ರ ಆಪರೇಟರ್',ml:'തയ്യൽ മെഷീൻ ഓപ്പറേറ്റർ'},
+ student:{en:'Field Technician, Computing and Peripherals',hi:'फ़ील्ड टेक्नीशियन (कंप्यूटर और उपकरण)',ta:'கள தொழில்நுட்பர் (கணினி மற்றும் துணைக்கருவிகள்)',te:'ఫీల్డ్ టెక్నీషియన్ (కంప్యూటర్లు మరియు పరికరాలు)',kn:'ಫೀಲ್ಡ್ ಟೆಕ್ನೀಷಿಯನ್ (ಕಂಪ್ಯೂಟರ್ ಮತ್ತು ಪರಿಕರಗಳು)',ml:'ഫീൽഡ് ടെക്നീഷ്യൻ (കമ്പ്യൂട്ടറും അനുബന്ധ ഉപകരണങ്ങളും)'},
+ woman:{en:'Self Employed Tailor',hi:'स्वरोज़गार दर्जी',ta:'சுயதொழில் தையல்காரர்',te:'స్వయం ఉపాధి టైలర్',kn:'ಸ್ವಉದ್ಯೋಗಿ ದರ್ಜಿ',ml:'സ്വയംതൊഴിൽ തയ്യൽക്കാരൻ'},
+ business:{en:'Entrepreneurship basics (short module)',hi:'उद्यमिता की बुनियादी बातें (छोटा मॉड्यूल)',ta:'தொழில்முனைவு அடிப்படைகள் (சிறு தொகுதி)',te:'వ్యవస్థాపకత ప్రాథమికాలు (చిన్న మాడ్యూల్)',kn:'ಉದ್ಯಮಶೀಲತೆಯ ಮೂಲಗಳು (ಸಣ್ಣ ಮಾಡ್ಯೂಲ್)',ml:'സംരംഭകത്വ അടിസ്ഥാനങ്ങൾ (ചെറിയ മൊഡ്യൂൾ)'},
+ skill:{en:'Data Entry Operator',hi:'डेटा एंट्री ऑपरेटर',ta:'தரவு உள்ளீட்டு இயக்குபவர்',te:'డేటా ఎంట్రీ ఆపరేటర్',kn:'ಡೇಟಾ ಎಂಟ್ರಿ ಆಪರೇಟರ್',ml:'ഡാറ്റ എൻട്രി ഓപ്പറേറ്റർ'},
+};
+const LBL = {
+ nsqf:{en:'NSQF level',hi:'एनएसक्यूएफ स्तर',ta:'என்எஸ்க்யூஎஃப் நிலை',te:'ఎన్ఎస్‌క్యూఎఫ్ స్థాయి',kn:'ಎನ್‌ಎಸ್‌ಕ್ಯೂಎಫ್ ಹಂತ',ml:'എൻഎസ്‌ക്യുഎഫ് ലെവൽ'},
+ demo:{en:'We could not pick out a work or skill from that, so this is a demo profile (farmer, skills, loan).',
+  hi:'आपकी बात से काम या कौशल समझ नहीं आया, इसलिए यह एक नमूना प्रोफ़ाइल है (किसान, कौशल, कर्ज)।',
+  ta:'நீங்கள் சொன்னதிலிருந்து வேலை அல்லது திறனைப் புரிந்துகொள்ள முடியவில்லை, எனவே இது மாதிரிச் சுயவிவரம் (விவசாயி, திறன், கடன்).',
+  te:'మీరు చెప్పిన దాని నుండి పని లేదా నైపుణ్యాన్ని గుర్తించలేకపోయాము, కాబట్టి ఇది నమూనా ప్రొఫైల్ (రైతు, నైపుణ్యం, రుణం).',
+  kn:'ನೀವು ಹೇಳಿದ್ದರಿಂದ ಕೆಲಸ ಅಥವಾ ಕೌಶಲ್ಯವನ್ನು ಗುರುತಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ, ಆದ್ದರಿಂದ ಇದು ಮಾದರಿ ಪ್ರೊಫೈಲ್ (ರೈತ, ಕೌಶಲ್ಯ, ಸಾಲ).',
+  ml:'നിങ്ങൾ പറഞ്ഞതിൽ നിന്ന് ജോലിയോ നൈപുണ്യമോ തിരിച്ചറിയാൻ കഴിഞ്ഞില്ല, അതിനാൽ ഇത് സാമ്പിൾ പ്രൊഫൈൽ ആണ് (കർഷകൻ, നൈപുണ്യം, വായ്പ).'},
+ foot:{en:'Prototype with demo data. Scheme details and NSQF levels are samples; confirm on the official portals before applying.',
+  hi:'यह डेमो डेटा वाला प्रोटोटाइप है। योजनाओं की जानकारी और एनएसक्यूएफ स्तर नमूने हैं; आवेदन से पहले आधिकारिक पोर्टल पर पुष्टि कर लें।',
+  ta:'இது மாதிரித் தரவுடன் கூடிய முன்மாதிரி. திட்ட விவரங்களும் என்எஸ்க்யூஎஃப் நிலைகளும் மாதிரிகள்; விண்ணப்பிக்கும் முன் அதிகாரப்பூர்வ தளங்களில் உறுதிசெய்யுங்கள்.',
+  te:'ఇది నమూనా డేటాతో ఉన్న ప్రోటోటైప్. పథకాల వివరాలు మరియు ఎన్ఎస్‌క్యూఎఫ్ స్థాయిలు నమూనాలు; దరఖాస్తు చేసే ముందు అధికారిక పోర్టల్‌లలో నిర్ధారించుకోండి.',
+  kn:'ಇದು ಮಾದರಿ ಡೇಟಾ ಇರುವ ಪ್ರೊಟೋಟೈಪ್. ಯೋಜನೆಗಳ ವಿವರಗಳು ಮತ್ತು ಎನ್‌ಎಸ್‌ಕ್ಯೂಎಫ್ ಹಂತಗಳು ಮಾದರಿಗಳು; ಅರ್ಜಿ ಸಲ್ಲಿಸುವ ಮೊದಲು ಅಧಿಕೃತ ಪೋರ್ಟಲ್‌ಗಳಲ್ಲಿ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.',
+  ml:'ഇത് സാമ്പിൾ ഡാറ്റയുള്ള പ്രോട്ടോടൈപ്പ് ആണ്. പദ്ധതി വിവരങ്ങളും എൻഎസ്‌ക്യുഎഫ് ലെവലുകളും സാമ്പിളുകളാണ്; അപേക്ഷിക്കുന്നതിന് മുമ്പ് ഔദ്യോഗിക പോർട്ടലുകളിൽ സ്ഥിരീകരിക്കുക.'},
+};
+
+/* Sample NSQF pathways. Replace with real qualification-pack data from NSDC. */
+const PATHWAYS = {
+ farmer:  {name:'Organic Grower', level:4},
+ artisan: {name:'Sewing Machine Operator', level:3},
+ student: {name:'Field Technician, Computing and Peripherals', level:4},
+ woman:   {name:'Self Employed Tailor', level:4},
+ business:{name:'Entrepreneurship basics (short module)', level:3},
+ skill:   {name:'Data Entry Operator', level:4},
+};
+
+/* ====================== STATE ====================== */
+const $ = id => document.getElementById(id);
+let lang = LANGS[0];          // current language object
+let gateLang = LANGS[0];      // selection on the start screen
+let suggestedCode = null;
+let started = false;
+let rec = null, listening = false;
+let speakToken = 0;
+let voices = [];
+
+/* ====================== HELPERS ====================== */
+function h(tag, attrs = {}, ...kids){
+  const el = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)){
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => el.append(c instanceof Node ? c : document.createTextNode(c)));
+  return el;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const ICON_SPEAKER = () => { const s = document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('viewBox','0 0 24 24'); s.setAttribute('fill','none'); s.setAttribute('stroke','currentColor'); s.setAttribute('stroke-width','2'); s.innerHTML='<path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>'; return s; };
+
+function setState(s){ $('orbwrap').className = 'orbwrap ' + s; const u = UI[lang.code];
+  $('status').textContent = ({idle:u.tap, listening:u.listening, thinking:u.thinking, speaking:u.speaking})[s] || '';
+  $('stopBtn').classList.toggle('on', s === 'speaking'); }
+function notice(msg){ const n = $('notice'); if(!msg){ n.classList.remove('on'); return;} n.textContent = msg; n.classList.add('on'); }
+
+/* ====================== LOCATION -> LANGUAGE ====================== */
+function nearestAnchor(lat, lng){
+  let best = null, bd = Infinity;
+  for (const a of ANCHORS){
+    const d = (a[2]-lat)**2 + ((a[3]-lng)*Math.cos(lat*Math.PI/180))**2;
+    if (d < bd){ bd = d; best = a; }
+  }
+  // farther than about 6 degrees from any anchor: no regional suggestion
+  return Math.sqrt(bd) < 6 ? best : null;
+}
+function applyDetection(a, how){
+  const region = $('region');
+  if (a){
+    suggestedCode = a[1];
+    const L = LANGS.find(l => l.code === a[1]);
+    gateLang = L; renderGate();
+    region.textContent = `Detected region: ${a[0]}. Suggested language: ${L.native} (${L.name}). English is always available.`;
+  } else {
+    suggestedCode = null; gateLang = LANGS[0]; renderGate();
+    region.textContent = how + ' Pick any language below.';
+  }
+}
+function detectLocation(){
+  if (!navigator.geolocation){ fromBrowserLang(); return; }
+  navigator.geolocation.getCurrentPosition(
+    p => applyDetection(nearestAnchor(p.coords.latitude, p.coords.longitude), 'Your region is outside the demo regions.'),
+    () => fromBrowserLang(), {timeout:7000, maximumAge:600000});
+}
+function fromBrowserLang(){
+  const code = (navigator.language || 'en').slice(0,2).toLowerCase();
+  const L = LANGS.find(l => l.code === code && code !== 'en');
+  if (L){ suggestedCode = L.code; gateLang = L; renderGate(); $('region').textContent = `Location not shared. Using your device language: ${L.native}.`; }
+  else { $('region').textContent = 'Location not shared, so English is selected. Pick any language below.'; }
+}
+
+/* ====================== LANGUAGE GATE ====================== */
+function renderGate(){
+  const g = $('langGrid'); g.innerHTML = '';
+  LANGS.forEach(L => {
+    const b = h('button', {class:'lang','aria-pressed': String(L.code === gateLang.code), lang:L.bcp,
+      onclick:()=>{ gateLang = L; renderGate(); }}, L.native, h('small',{}, L.name));
+    if (L.code === suggestedCode) b.append(h('span',{class:'sug'},'Suggested'));
+    g.append(b);
+  });
+  $('startBtn').textContent = UI[gateLang.code].start;
+  $('startBtn').setAttribute('lang', gateLang.bcp);
+}
+function openGate(){ $('gate').classList.remove('off'); stopSpeak(); if (listening && rec) rec.stop(); }
+
+/* ====================== APPLY LANGUAGE TO UI ====================== */
+function applyLang(){
+  const u = UI[lang.code];
+  document.documentElement.lang = lang.bcp;
+  $('langBtnText').textContent = lang.native;
+  $('say').textContent = u.greet;
+  $('stopBtn').textContent = u.stop;
+  $('typed').placeholder = u.placeholder;
+  $('sendBtn').textContent = u.send;
+  $('samplesLbl').textContent = u.samples;
+  $('heardLbl').textContent = u.heard;
+  $('resTitle').textContent = u.schemes;
+  const em = $('emptyMsg'); if (em) em.textContent = u.empty;
+  const sc = $('sampleChips'); sc.innerHTML = '';
+  Object.keys(SAMPLES).forEach(k => {
+    sc.append(h('button',{class:'chip', lang:lang.bcp, onclick:()=>handleInput(SAMPLES[k][lang.code],{demo:true})}, TAGLABEL[SAMPLE_TAG[k]][lang.code]));
+  });
+  $('foot').textContent = LBL.foot[lang.code];
+  $('logTitle').textContent = u.heard; $('readAll').textContent = u.listen;
+  setState('idle');
+}
+
+/* ====================== TEXT TO SPEECH ====================== */
+/* 1) Uses a voice installed on the device if there is one for the language.
+   2) If there is none (common for Tamil, Telugu, Kannada, Malayalam in Chrome), falls back to an online voice. */
+function loadVoices(){ voices = speechSynthesis.getVoices(); }
+if ('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function getVoicesNow(){
+  if ('speechSynthesis' in window){ const v = speechSynthesis.getVoices(); if (v.length) voices = v; }
+  return voices;
+}
+async function waitVoices(){ for (let i = 0; i < 15 && !getVoicesNow().length; i++) await sleep(100); }
+function pickVoice(bcp){
+  const base = bcp.slice(0,2);
+  const list = getVoicesNow().filter(v => v.lang.replace('_','-').toLowerCase().startsWith(base));
+  if (!list.length) return null;
+  const exact = list.filter(v => v.lang.replace('_','-').toLowerCase() === bcp.toLowerCase());
+  const pool = exact.length ? exact : list;
+  return pool.find(v => /natural|online|google/i.test(v.name)) || pool[0];
+}
+
+const keepUtt = [];            // keeps utterances referenced so Chrome does not garbage-collect them mid-speech
+let curAudio = null;
+
+function chunkText(t, max = 170){
+  const sents = t.match(/[^.।!?]+[.।!?]?/g) || [t], out = [];
+  let cur = '';
+  const push = x => { if (x.trim()) out.push(x.trim()); };
+  for (const s0 of sents){
+    let s1 = s0;
+    while (s1.length > max){                         // very long sentence: cut at a space
+      let k = s1.lastIndexOf(' ', max); if (k < 40) k = max;
+      if ((cur + s1.slice(0,k)).length > max){ push(cur); cur = ''; }
+      push(cur + s1.slice(0,k)); cur = ''; s1 = s1.slice(k);
+    }
+    if ((cur + s1).length > max){ push(cur); cur = s1; } else cur += s1;
+  }
+  push(cur); return out;
+}
+function playUrl(url){
+  return new Promise(res => {
+    const a = new Audio(url); curAudio = a; a.playbackRate = slow ? 0.8 : 1;
+    a.onended = () => res(true); a.onerror = () => res(false);
+    a.play().catch(() => res(false));
+  });
+}
+async function speakCloud(text, code, token){
+  for (const part of chunkText(text)){
+    if (token !== speakToken) return true;
+    const ok = await playUrl('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=' + code + '&q=' + encodeURIComponent(part));
+    if (!ok) return false;
+  }
+  return true;
+}
+
+function speakLocal(text, bcp, token, v){
+  return new Promise(resolve => {
+    if (!('speechSynthesis' in window)) return resolve();
+    const parts = chunkText(text, 200);
+    let i = 0, alive = 0;
+    const finish = () => { clearInterval(alive); resolve(); };
+    if (v && !v.localService)      // Chrome stops long online speech after ~15s; pause/resume keeps it going
+      alive = setInterval(() => { if (speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); speechSynthesis.resume(); } }, 10000);
+    const next = () => {
+      if (token !== speakToken || i >= parts.length) return finish();
+      const t = parts[i++]; let done = false;
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = bcp; if (v) u.voice = v; u.rate = slow ? 0.72 : 0.92;
+      const go = () => { if (done) return; done = true; clearTimeout(guard); const k = keepUtt.indexOf(u); if (k > -1) keepUtt.splice(k,1); next(); };
+      const guard = setTimeout(go, Math.max(4000, t.length * 300));   // if the browser never reports the end, move on
+      u.onend = go; u.onerror = go; keepUtt.push(u);
+      speechSynthesis.speak(u);
+    };
+    next();
+  });
+}
+async function speakOne(text, bcp, token){
+  const code = bcp.slice(0,2);
+  const v = ('speechSynthesis' in window) ? pickVoice(bcp) : null;
+  if (!v && code !== 'en'){ if (await speakCloud(text, code, token)) return; }
+  await speakLocal(text, bcp, token, v);
+}
+async function speakSeq(items){
+  const token = ++speakToken;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (curAudio){ curAudio.pause(); curAudio = null; }
+  await sleep(60);
+  if ('speechSynthesis' in window) await waitVoices();
+  if (token !== speakToken) return;
+  if (lang.code !== 'en' && !pickVoice(lang.bcp))
+    notice(`No ${lang.name} voice is installed on this device, so an online voice is used (needs internet). For an offline voice, use Microsoft Edge, or add ${lang.name} in Windows Settings under Time & language, Speech.`);
+  setState('speaking');
+  for (const it of items){
+    if (token !== speakToken) return;
+    if (it.onStart) it.onStart();
+    await speakOne(it.text, lang.bcp, token);
+    if (it.onEnd) it.onEnd();
+  }
+  if (token === speakToken) setState('idle');
+}
+function stopSpeak(){
+  speakToken++;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (curAudio){ const a = curAudio; curAudio = null; a.pause(); a.dispatchEvent(new Event('ended')); }
+  document.querySelectorAll('.scheme.playing').forEach(e => e.classList.remove('playing')); setState('idle');
+}
+
+/* ====================== EXTRA MOCK DATA (sample text) ====================== */
+const X = {
+ en:{docs:'Keep these ready',how:'How to apply'},
+ hi:{docs:'ये तैयार रखिए',how:'आवेदन कैसे करें'},
+ ta:{docs:'இவற்றைத் தயாராக வைத்திருங்கள்',how:'விண்ணப்பிக்கும் முறை'},
+ te:{docs:'ఇవి సిద్ధంగా ఉంచుకోండి',how:'దరఖాస్తు చేసే విధానం'},
+ kn:{docs:'ಇವನ್ನು ಸಿದ್ಧವಾಗಿಡಿ',how:'ಅರ್ಜಿ ಸಲ್ಲಿಸುವ ವಿಧಾನ'},
+ ml:{docs:'ഇവ തയ്യാറാക്കി വെക്കുക',how:'അപേക്ഷിക്കുന്ന വിധം'}};
+const DOCS = {
+ en:['Aadhaar card','Caste certificate','Income certificate','Bank passbook'],
+ hi:['आधार कार्ड','जाति प्रमाणपत्र','आय प्रमाणपत्र','बैंक पासबुक'],
+ ta:['ஆதார் அட்டை','சாதிச் சான்றிதழ்','வருமானச் சான்றிதழ்','வங்கிக் கணக்குப் புத்தகம்'],
+ te:['ఆధార్ కార్డు','కుల ధృవీకరణ పత్రం','ఆదాయ ధృవీకరణ పత్రం','బ్యాంకు పాస్‌బుక్'],
+ kn:['ಆಧಾರ್ ಕಾರ್ಡ್','ಜಾತಿ ಪ್ರಮಾಣಪತ್ರ','ಆದಾಯ ಪ್ರಮಾಣಪತ್ರ','ಬ್ಯಾಂಕ್ ಪಾಸ್‌ಬುಕ್'],
+ ml:['ആധാർ കാർഡ്','ജാതി സർട്ടിഫിക്കറ്റ്','വരുമാന സർട്ടിഫിക്കറ്റ്','ബാങ്ക് പാസ്ബുക്ക്']};
+const STEPS = {
+ en:['Visit the official site or your nearest Common Service Centre.','Fill in the form and upload your documents.','Note the application number and check the status later.'],
+ hi:['आधिकारिक साइट या नज़दीकी कॉमन सर्विस सेंटर पर जाइए।','फ़ॉर्म भरिए और दस्तावेज़ जमा कीजिए।','आवेदन संख्या लिख लीजिए और बाद में स्थिति देखिए।'],
+ ta:['அதிகாரப்பூர்வ தளம் அல்லது அருகிலுள்ள பொது சேவை மையத்துக்குச் செல்லுங்கள்.','படிவத்தை நிரப்பி ஆவணங்களைப் பதிவேற்றுங்கள்.','விண்ணப்ப எண்ணைக் குறித்துக்கொண்டு பிறகு நிலையைப் பாருங்கள்.'],
+ te:['అధికారిక సైట్ లేదా దగ్గరలోని కామన్ సర్వీస్ సెంటర్‌కు వెళ్లండి.','ఫారం నింపి పత్రాలను అప్‌లోడ్ చేయండి.','దరఖాస్తు నంబర్ రాసుకుని తర్వాత స్థితిని చూడండి.'],
+ kn:['ಅಧಿಕೃತ ಸೈಟ್ ಅಥವಾ ಹತ್ತಿರದ ಕಾಮನ್ ಸರ್ವಿಸ್ ಸೆಂಟರ್‌ಗೆ ಭೇಟಿ ನೀಡಿ.','ಅರ್ಜಿ ತುಂಬಿ ದಾಖಲೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.','ಅರ್ಜಿ ಸಂಖ್ಯೆಯನ್ನು ಬರೆದಿಟ್ಟುಕೊಂಡು ನಂತರ ಸ್ಥಿತಿ ನೋಡಿ.'],
+ ml:['ഔദ്യോഗിക സൈറ്റിലോ അടുത്തുള്ള കോമൺ സർവീസ് സെന്ററിലോ പോകുക.','ഫോം പൂരിപ്പിച്ച് രേഖകൾ അപ്‌ലോഡ് ചെയ്യുക.','അപേക്ഷാ നമ്പർ കുറിച്ചുവെച്ച് പിന്നീട് നില പരിശോധിക്കുക.']};
+const SC_IDS = ['pmajay','pmdaksh','nsfdc','postmatric'];   // only these need a caste certificate
+let slow = false, curTags = [], curSchemes = [], curCards = [];
+
+/* Which language was spoken? Decided from the script of the recognised text. */
+function detectLang(t){
+  const c = {hi:0,ta:0,te:0,kn:0,ml:0,en:0};
+  for (const ch of t){ const n = ch.codePointAt(0);
+    if (n>=0x900&&n<=0x97F) c.hi++; else if (n>=0xB80&&n<=0xBFF) c.ta++; else if (n>=0xC00&&n<=0xC7F) c.te++;
+    else if (n>=0xC80&&n<=0xCFF) c.kn++; else if (n>=0xD00&&n<=0xD7F) c.ml++; else if (/[a-z]/i.test(ch)) c.en++; }
+  const top = Object.entries(c).sort((a,b) => b[1]-a[1])[0];
+  return top[1] ? top[0] : null;
+}
+
+/* ====================== RECORDING (audio + waveform) ====================== */
+let mediaRec = null, chunks = [], stream = null, audioCtx = null, analyser = null, raf = 0;
+async function startCapture(){
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks = []; mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    mediaRec.start();
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    const c = $('wave'), g = c.getContext('2d'), d = new Uint8Array(analyser.frequencyBinCount);
+    c.style.display = 'block';
+    (function frame(){ raf = requestAnimationFrame(frame); analyser.getByteFrequencyData(d);
+      g.clearRect(0,0,c.width,c.height); const w = c.width / d.length; g.fillStyle = '#F4A81D';
+      d.forEach((v,i) => { const bh = Math.max(3, v/255*c.height); g.fillRect(i*w+2, (c.height-bh)/2, w-4, bh); }); })();
+  }catch(e){ mediaRec = null; }
+}
+function stopCapture(){
+  return new Promise(res => {
+    cancelAnimationFrame(raf); $('wave').style.display = 'none';
+    const done = () => {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (audioCtx) audioCtx.close().catch(()=>{});
+      stream = audioCtx = null;
+      res(mediaRec && chunks.length ? URL.createObjectURL(new Blob(chunks,{type:mediaRec.mimeType || 'audio/webm'})) : null);
+    };
+    if (mediaRec && mediaRec.state !== 'inactive'){ mediaRec.onstop = done; mediaRec.stop(); } else done();
+  });
+}
+
+/* ====================== SPEECH RECOGNITION ====================== */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function toggleMic(){
+  if (listening && rec){ rec.stop(); return; }
+  if (!SR){ notice('Voice input needs Microsoft Edge or Google Chrome. You can still type, or tap a sample below.'); return; }
+  stopSpeak(); notice('');
+  rec = new SR(); rec.lang = lang.bcp; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
+  let live = '', failed = false, silence = 0;
+  $('transcript').hidden = false; $('heardTxt').textContent = '';
+  startCapture();
+  rec.onresult = e => {                       // live text appears while you speak
+    let f = '', p = '';
+    for (let i = 0; i < e.results.length; i++){ const r = e.results[i]; if (r.isFinal) f += r[0].transcript + ' '; else p += r[0].transcript; }
+    live = (f + p).trim(); $('heardTxt').textContent = live;
+    clearTimeout(silence); silence = setTimeout(() => { try{ rec.stop(); }catch(_){} }, 2500);   // stops after a pause
+  };
+  rec.onerror = e => {
+    failed = true;
+    notice({'not-allowed':'Microphone access is blocked. Allow the microphone in the address bar, then try again.',
+      'no-speech':'No speech was heard. Tap the mic and speak again, or tap a sample below.',
+      'network':'Speech recognition needs an internet connection. Tap a sample below to continue the demo.',
+      'language-not-supported':`${lang.name} voice input is not supported in this browser. Tap a sample or type instead.`}[e.error]
+      || 'Could not hear you. Try again, or tap a sample below.');
+  };
+  rec.onend = async () => {
+    clearTimeout(silence); listening = false; setState('idle');
+    const url = await stopCapture();
+    if (live) handleInput(live, {url});
+    else { $('transcript').hidden = true; if (!failed) notice('No speech was heard. Tap the mic and speak again, or tap a sample below.'); }
+  };
+  try { rec.start(); listening = true; setState('listening'); } catch(err){ notice('Could not start the microphone.'); }
+}
+
+/* ====================== UNDERSTAND + RECOMMEND ====================== */
+function analyse(text){
+  const t = text.normalize('NFC').toLowerCase();
+  return Object.keys(KEYWORDS).filter(tag => KEYWORDS[tag].some(k => t.includes(k)));
+}
+function recommend(tags){
+  const scored = SCHEMES.map((s,i) => ({s, i, score: s.tags.filter(t => tags.includes(t)).length}))
+    .filter(x => x.s.id === 'pmajay' || x.score > 0);
+  scored.sort((a,b) => (b.s.id==='pmajay') - (a.s.id==='pmajay') || b.score - a.score || a.i - b.i);
+  return scored.slice(0,5).map(x => x.s);
+}
+
+/* Demo chips: the sentence "types itself" like live speech, so it works offline. */
+async function typeOut(text){
+  $('transcript').hidden = false; setState('listening');
+  for (let i = 3; i < text.length; i += 3){ $('heardTxt').textContent = text.slice(0,i); await sleep(30); }
+  $('heardTxt').textContent = text;
+}
+/* Every spoken or typed sentence is kept in the conversation list, with its audio if it was recorded. */
+function addBubble(text, url){
+  const b = h('div',{class:'bubble', lang:lang.bcp}, h('div',{}, text),
+    h('div',{class:'bmeta'}, h('b',{}, lang.native), url ? h('audio',{controls:'', src:url}) : '',
+      h('button',{'aria-label':'Edit and resend', title:'Edit and resend', onclick:()=>{ $('typed').value = text; $('typed').focus(); }}, '✎')));
+  $('log').prepend(b);
+}
+async function handleInput(text, o = {}){
+  text = (text||'').trim(); if (!text) return;
+  $('typed').value = ''; notice(''); stopSpeak();
+  if (o.demo) await typeOut(text);
+  const code = detectLang(text) || lang.code;         // reply in the language that was spoken
+  if (code !== lang.code){ lang = LANGS.find(l => l.code === code); applyLang(); }
+  addBubble(text, o.url); $('transcript').hidden = true; setState('thinking');
+  $('resBody').innerHTML = '<div class="skel"></div>'.repeat(3);
+  await sleep(900);
+  let tags = analyse(text), usedDemo = false;
+  if (!tags.filter(t => t !== 'edu10').length){ tags = ['farmer','skill','business']; usedDemo = true; }
+  showResults(tags, usedDemo);
+}
+
+const mark = card => { document.querySelectorAll('.scheme.playing').forEach(e => e.classList.remove('playing')); card.classList.add('playing'); card.scrollIntoView({behavior:'smooth', block:'nearest'}); };
+const seqAll = () => [{text:UI[lang.code].intro}].concat(curSchemes.map((s,i) => ({text:s[lang.code], onStart:()=>mark(curCards[i]), onEnd:()=>curCards[i].classList.remove('playing')})));
+
+function showResults(tags, usedDemo, speak = true){
+  const l = lang.code, u = UI[l], x = X[l], schemes = recommend(tags), body = $('resBody');
+  curTags = tags; curSchemes = schemes; body.innerHTML = ''; $('readAll').hidden = false;
+  $('say').textContent = u.intro;
+  body.append(h('span',{class:'langchip', lang:lang.bcp}, '🗣 ' + lang.native));
+  body.append(h('div',{class:'profile','aria-label':u.profile}, tags.map(t =>
+    h('span',{class:'tag'}, TAGLABEL[t][l], h('button',{'aria-label':'Remove', onclick:()=>showResults(tags.filter(z => z !== t), false, false)}, '×')))));
+  if (usedDemo) body.append(h('p',{class:'demonote',lang:lang.bcp}, LBL.demo[l]));
+
+  curCards = schemes.map((s,i) => {
+    const docs = SC_IDS.includes(s.id) ? DOCS[l] : DOCS[l].filter((_,k) => k !== 1);
+    const why = s.tags.filter(t => tags.includes(t)).map(t => TAGLABEL[t][l]);
+    const full = () => speakSeq([{text: s[l] + ' ' + x.how + '. ' + STEPS[l].join(' '), onStart:()=>mark(card), onEnd:()=>card.classList.remove('playing')}]);
+    const card = h('article',{class:'scheme' + (i===0 ? ' first' : '')},
+      h('div',{class:'shead'}, h('h3',{lang:lang.bcp}, SCHEME_NAME[s.id][l]), h('span',{class:'cat',lang:lang.bcp}, SCHEME_CAT[s.id][l])),
+      why.length ? h('p',{class:'why'}, '✓ ' + why.join(', ')) : '',
+      h('p',{class:'native', lang:lang.bcp}, s[l]),
+            h('details',{class:'more', lang:lang.bcp}, h('summary',{}, x.how),
+        h('ol',{}, STEPS[l].map(t => h('li',{}, t))), h('h4',{}, x.docs), h('ul',{}, docs.map(d => h('li',{}, d)))),
+      h('div',{class:'actions'},
+        h('button',{class:'btn', lang:lang.bcp, onclick:full}, ICON_SPEAKER(), u.listen),
+        h('a',{class:'btn ghost', href:s.url, target:'_blank', rel:'noopener'}, u.apply),
+        h('a',{class:'btn ghost', href:'https://wa.me/?text=' + encodeURIComponent(SCHEME_NAME[s.id][l] + '\n' + s[l] + '\n' + s.url), target:'_blank', rel:'noopener'}, 'WhatsApp')));
+    return card;
+  });
+  curCards.forEach(c => body.append(c));
+
+  const pt = tags.filter(t => PATHWAYS[t] && t !== 'edu10').slice(0,3);
+  if (pt.length) body.append(h('div',{class:'path'}, h('h3',{}, u.path),
+    pt.map(t => h('div',{class:'pathrow'}, h('span',{lang:lang.bcp}, PATH_NAME[t][l]), h('span',{class:'lvl',lang:lang.bcp}, LBL.nsqf[l] + ' ' + PATHWAYS[t].level)))));
+  if (speak) speakSeq(seqAll());
+}
+
+/* ====================== WIRING ====================== */
+$('orb').addEventListener('click', toggleMic);
+$('stopBtn').addEventListener('click', stopSpeak);
+$('sendBtn').addEventListener('click', () => handleInput($('typed').value));
+$('typed').addEventListener('keydown', e => { if (e.key === 'Enter') handleInput($('typed').value); });
+$('langBtn').addEventListener('click', openGate);
+$('startBtn').addEventListener('click', () => {
+  lang = gateLang; $('gate').classList.add('off'); applyLang();
+  $('resBody').innerHTML = ''; $('resBody').append(h('div',{class:'empty', id:'emptyMsg'}, UI[lang.code].empty));
+  $('transcript').hidden = true; notice('');
+  speakSeq([{text:UI[lang.code].greet}]);       // runs inside the click, so the browser allows audio
+  started = true;
+});
+DEMO_LOCS.forEach(d => $('demoLoc').append(h('option',{value:d[1]+','+d[2]}, d[0])));
+$('demoLoc').addEventListener('change', e => {
+  if (!e.target.value){ $('region').textContent = 'Finding your region…'; detectLocation(); return; }
+  const [la,lo] = e.target.value.split(',').map(Number);
+  applyDetection(nearestAnchor(la,lo), 'That demo location is outside the supported regions.');
+});
+
+$('readAll').addEventListener('click', () => curSchemes.length && speakSeq(seqAll()));
+$('clearLog').addEventListener('click', () => { $('log').innerHTML = ''; });
+let zoom = 1;
+$('fontUp').addEventListener('click', () => { zoom = Math.min(1.3, zoom + .1); document.body.style.zoom = zoom; });
+$('fontDn').addEventListener('click', () => { zoom = Math.max(.9, zoom - .1); document.body.style.zoom = zoom; });
+$('slowBtn').addEventListener('click', e => { slow = !slow; e.currentTarget.setAttribute('aria-pressed', slow); });
+
+renderGate(); applyLang(); detectLocation();
+</script>
+</body>
+</html>
